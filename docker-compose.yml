@@ -1,9 +1,11 @@
-version: '2'
+version: '3'
 
 services:
-  
+
   consulserver:
    image: gliderlabs/consul-server:latest
+   networks:
+      - nodenet
    hostname: workmech
    ports:
       - "8300:8300"
@@ -14,6 +16,8 @@ services:
 
   registrator:
    image: gliderlabs/registrator:master
+   networks:
+      - nodenet
    hostname: registrator
    links:
       - consulserver:consul
@@ -24,16 +28,28 @@ services:
 
   web:
    build: .
+   networks:
+      - nodenet
    ports:
       - "5000:5000"
    links:
       - mongo
    container_name: webapp
+   deploy:
+	mode: replicated
+	replicas: 1
+	restart_policy: on-failure
 
   mongo:
    image: mongo
-   volumes:
-      - /data/mongodb/db:/data/db
+   networks:
+      - nodenet
    ports:
       - "27017:27017"
+   volumes:
+      - /data/mongodb/db:/data/db
    container_name: mongodb
+   deploy:
+	mode: replicated
+	replicas: 2
+	restart_policy: on-failure
