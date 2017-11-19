@@ -1,0 +1,39 @@
+version: '2'
+
+services:
+  
+  consulserver:
+   image: gliderlabs/consul-server:latest
+   hostname: workmech
+   ports:
+      - "8300:8300"
+      - "8500:8500"
+      - "8600:8600"
+   command: -data-dir /tmp/consul -bootstrap -client 0.0.0.0
+   container_name: consul
+
+  registrator:
+   image: gliderlabs/registrator:master
+   hostname: registrator
+   links:
+      - consulserver:consul
+   volumes:
+      - "/var/run/docker.sock:/tmp/docker.sock"
+   command: -internal consul://consul:8500
+   container_name: registrator
+
+  web:
+   build: .
+   ports:
+      - "5000:5000"
+   links:
+      - mongo
+   container_name: webapp
+
+  mongo:
+   image: mongo
+   volumes:
+      - /data/mongodb/db:/data/db
+   ports:
+      - "27017:27017"
+   container_name: mongodb
