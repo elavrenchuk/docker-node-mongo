@@ -1,55 +1,44 @@
 version: '3'
 
 services:
-
   consulserver:
-   image: gliderlabs/consul-server:latest
-   networks:
+    image: gliderlabs/consul-server:latest
+    networks:
       - nodenet
-   hostname: workmech
-   ports:
+    hostname: workmech
+    ports:
       - "8300:8300"
       - "8500:8500"
       - "8600:8600"
-   command: -data-dir /tmp/consul -bootstrap -client 0.0.0.0
-   container_name: consul
-
-  registrator:
-   image: gliderlabs/registrator:master
-   networks:
-      - nodenet
-   hostname: registrator
-   links:
-      - consulserver:consul
-   volumes:
-      - "/var/run/docker.sock:/tmp/docker.sock"
-   command: -internal consul://consul:8500
-   container_name: registrator
+    command: -data-dir /tmp/consul -bootstrap -client 0.0.0.0
 
   web:
-   build: .
-   networks:
+    image: serredaman/nodeapp
+    networks:
       - nodenet
-   ports:
+    ports:
       - "5000:5000"
-   links:
-      - mongo
-   container_name: webapp
-   deploy:
-	mode: replicated
-	replicas: 1
-	restart_policy: on-failure
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
 
   mongo:
-   image: mongo
-   networks:
+    image: mongo
+    networks:
       - nodenet
-   ports:
+    ports:
       - "27017:27017"
-   volumes:
+    volumes:
       - /data/mongodb/db:/data/db
-   container_name: mongodb
-   deploy:
-	mode: replicated
-	replicas: 2
-	restart_policy: on-failure
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+networks:
+  nodenet:
