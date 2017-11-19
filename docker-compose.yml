@@ -2,15 +2,14 @@ version: '3'
 
 services:
   consulserver:
-    image: gliderlabs/consul-server:latest
+    image: consul:0.8.5
     networks:
       - nodenet
-    hostname: workmech
     ports:
       - "8300:8300"
       - "8500:8500"
       - "8600:8600"
-    command: -data-dir /tmp/consul -bootstrap -client 0.0.0.0
+    command: consul agent -dev -ui -client 0.0.0.0
 
   web:
     image: serredaman/nodeapp
